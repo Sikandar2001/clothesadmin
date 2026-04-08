@@ -1,65 +1,105 @@
-import Image from "next/image";
+import { 
+  ShoppingBag, 
+  DollarSign, 
+  Users, 
+  TrendingUp 
+} from "lucide-react";
 
-export default function Home() {
+const stats = [
+  { 
+    label: "Total Sales", 
+    value: "$12,450.00", 
+    change: "+12%", 
+    icon: DollarSign,
+    color: "text-green-600",
+    bg: "bg-green-100"
+  },
+  { 
+    label: "Active Products", 
+    value: "48", 
+    change: "+4", 
+    icon: ShoppingBag,
+    color: "text-blue-600",
+    bg: "bg-blue-100"
+  },
+  { 
+    label: "Total Customers", 
+    value: "1,200", 
+    change: "+85", 
+    icon: Users,
+    color: "text-purple-600",
+    bg: "bg-purple-100"
+  },
+  { 
+    label: "Conversion Rate", 
+    value: "3.2%", 
+    change: "+0.4%", 
+    icon: TrendingUp,
+    color: "text-orange-600",
+    bg: "bg-orange-100"
+  },
+];
+
+export default function DashboardPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard Overview</h1>
+        <p className="text-gray-500 mt-1">Welcome back to your store administration.</p>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div 
+            key={stat.label} 
+            className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="flex items-center justify-between">
+              <div className={`rounded-lg p-2 ${stat.bg}`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
+              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100">
+                {stat.change}
+              </span>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+              <h3 className="text-2xl font-bold mt-1 text-gray-900">{stat.value}</h3>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-7">
+        <div className="lg:col-span-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">Recent Sales</h3>
+          <div className="text-sm text-gray-500">Sales chart will be implemented here.</div>
+          <div className="mt-8 h-[240px] w-full bg-gray-50 rounded-lg flex items-center justify-center border border-dashed border-gray-300">
+            <TrendingUp className="h-10 w-10 text-gray-300" />
+          </div>
         </div>
-      </main>
+        
+        <div className="lg:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">Top Products</h3>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-gray-100" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Summer Cotton T-Shirt</p>
+                    <p className="text-xs text-gray-500">Clothes • Men</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">$29.99</p>
+                  <p className="text-xs text-green-600 font-medium">124 sold</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
