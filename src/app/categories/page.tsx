@@ -15,12 +15,15 @@ import {
 import { db } from "@/lib/firebase";
 import { Plus, Trash, Loader2, Tag } from "lucide-react";
 import { Category } from "@/types";
+import ImageUpload from "@/components/image-upload";
+import Image from "next/image";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const fetchCategories = async () => {
     try {
@@ -51,17 +54,20 @@ export default function CategoriesPage() {
       setIsAdding(true);
       const docRef = await addDoc(collection(db, "categories"), {
         name: newCategory.trim(),
+        image: imageUrls[0] || null,
         createdAt: serverTimestamp()
       });
       
       const newlyAdded: Category = {
         id: docRef.id,
         name: newCategory.trim(),
-        createdAt: Timestamp.now() as any // Temporary for UI before refetch
+        image: imageUrls[0] || undefined,
+        createdAt: Timestamp.now() as Timestamp
       };
 
       setCategories([newlyAdded, ...categories]);
       setNewCategory("");
+      setImageUrls([]);
       fetchCategories(); // Refetch to get proper server timestamp
     } catch (error) {
       console.error("Error adding category:", error);
@@ -91,22 +97,34 @@ export default function CategoriesPage() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <form onSubmit={onAddCategory} className="flex gap-4">
-          <input
-            placeholder="Category name (e.g. Winter Wear, Summer Collection)"
-            className="flex-1 rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            disabled={isAdding}
-          />
-          <button
-            type="submit"
-            disabled={isAdding || !newCategory.trim()}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-50 shadow-sm"
-          >
-            {isAdding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Add Category
-          </button>
+        <form onSubmit={onAddCategory} className="space-y-4">
+          <div className="flex gap-4">
+            <input
+              placeholder="Category name (e.g. Winter Wear, Summer Collection)"
+              className="flex-1 rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              disabled={isAdding}
+            />
+            <button
+              type="submit"
+              disabled={isAdding || !newCategory.trim()}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-50 shadow-sm"
+            >
+              {isAdding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Add Category
+            </button>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category Image (optional)</label>
+            <ImageUpload
+              value={imageUrls.slice(0, 1)}
+              onChange={(url) => setImageUrls([url])}
+              onRemove={() => setImageUrls([])}
+              disabled={isAdding}
+            />
+            <p className="text-xs text-gray-500">Only the first image is saved for each category.</p>
+          </div>
         </form>
       </div>
 
@@ -126,9 +144,15 @@ export default function CategoriesPage() {
             {categories.map((category) => (
               <div key={category.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition">
                 <div className="flex items-center gap-3">
+                  {category.image ? (
+                    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-gray-200 bg-gray-50">
+                      <Image src={category.image} alt={category.name} fill className="object-cover" unoptimized />
+                    </div>
+                  ) : (
                   <div className="bg-blue-50 p-2 rounded-lg">
                     <Tag className="h-4 w-4 text-blue-600" />
                   </div>
+                  )}
                   <span className="font-medium text-gray-900">{category.name}</span>
                 </div>
                 <button

@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export interface Category {
   id: string;
   name: string;
+  image?: string;
   createdAt: Timestamp;
 }
 
