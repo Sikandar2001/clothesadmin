@@ -49,19 +49,24 @@ export default function CategoriesPage() {
   const onAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategory.trim()) return;
+    
+    if (imageUrls.length === 0) {
+      alert("Please upload a category image.");
+      return;
+    }
 
     try {
       setIsAdding(true);
       const docRef = await addDoc(collection(db, "categories"), {
         name: newCategory.trim(),
-        image: imageUrls[0] || null,
+        image: imageUrls[0],
         createdAt: serverTimestamp()
       });
       
       const newlyAdded: Category = {
         id: docRef.id,
         name: newCategory.trim(),
-        image: imageUrls[0] || undefined,
+        image: imageUrls[0],
         createdAt: Timestamp.now() as Timestamp
       };
 
@@ -116,14 +121,14 @@ export default function CategoriesPage() {
             </button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category Image (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category Image <span className="text-red-500">*</span></label>
             <ImageUpload
               value={imageUrls.slice(0, 1)}
               onChange={(url) => setImageUrls([url])}
               onRemove={() => setImageUrls([])}
               disabled={isAdding}
             />
-            <p className="text-xs text-gray-500">Only the first image is saved for each category.</p>
+            <p className="text-xs text-gray-500 mt-1">Image is mandatory for all categories.</p>
           </div>
         </form>
       </div>

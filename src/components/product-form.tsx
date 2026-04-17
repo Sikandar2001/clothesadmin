@@ -6,7 +6,7 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc, getDocs, query, or
 import { db } from "@/lib/firebase";
 import ImageUpload from "@/components/image-upload";
 import { Save, X, Loader2 } from "lucide-react";
-import { Product, Category } from "@/types";
+import { Product, Category, SubCategory, ChildSubCategory } from "@/types";
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "Free Size"];
 const COLORS = ["Red", "Blue", "Black", "White", "Green", "Yellow", "Gray", "Navy", "Pink", "Multi"];
@@ -19,13 +19,17 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [fetchingCategories, setFetchingCategories] = useState(true);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [childSubCategories, setChildSubCategories] = useState<ChildSubCategory[]>([]);
+  const [fetchingData, setFetchingData] = useState(true);
   
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     category: "",
+    subCategory: "",
+    childSubCategory: "",
     sizes: [] as string[],
     colors: [] as string[],
     images: [] as string[],
@@ -34,22 +38,39 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     isFeatured: false,
     brand: "",
     discountPrice: "",
+    returnPolicy: "",
+    deliveryInfo: "",
+    careInstructions: "",
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const q = query(collection(db, "categories"), orderBy("name", "asc"));
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
-        setCategories(data);
+        setFetchingData(true);
+        // Fetch categories
+        const catQ = query(collection(db, "categories"), orderBy("name", "asc"));
+        const catSnapshot = await getDocs(catQ);
+        const catData = catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Category[];
+        setCategories(catData);
+
+        // Fetch subcategories
+        const subCatQ = query(collection(db, "subcategories"), orderBy("name", "asc"));
+        const subCatSnapshot = await getDocs(subCatQ);
+        const subCatData = subCatSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SubCategory[];
+        setSubCategories(subCatData);
+
+        // Fetch child subcategories
+        const childSubCatQ = query(collection(db, "child-subcategories"), orderBy("name", "asc"));
+        const childSubCatSnapshot = await getDocs(childSubCatQ);
+        const childSubCatData = childSubCatSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ChildSubCategory[];
+        setChildSubCategories(childSubCatData);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching form data:", error);
       } finally {
-        setFetchingCategories(false);
+        setFetchingData(false);
       }
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -59,6 +80,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         description: initialData.description || "",
         price: initialData.price?.toString() || "",
         category: initialData.category || "",
+        subCategory: initialData.subCategory || "",
+        childSubCategory: initialData.childSubCategory || "",
         sizes: initialData.sizes || [],
         colors: initialData.colors || [],
         images: initialData.images || [],
@@ -67,9 +90,24 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         isFeatured: initialData.isFeatured || false,
         brand: initialData.brand || "",
         discountPrice: initialData.discountPrice?.toString() || "",
+        returnPolicy: initialData.returnPolicy || "",
+        deliveryInfo: initialData.deliveryInfo || "",
+        careInstructions: initialData.careInstructions || "",
       });
     }
   }, [initialData]);
+
+  // Filter subcategories based on selected category name
+  const filteredSubCategories = subCategories.filter(sub => {
+    const parentCat = categories.find(c => c.name === formData.category);
+    return parentCat ? sub.categoryId === parentCat.id : false;
+  });
+
+  // Filter child subcategories based on selected subcategory name
+  const filteredChildSubCategories = childSubCategories.filter(childSub => {
+    const parentSub = subCategories.find(s => s.name === formData.subCategory && s.categoryId === categories.find(c => c.name === formData.category)?.id);
+    return parentSub ? childSub.subCategoryId === parentSub.id : false;
+  });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +117,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     if (!formData.name) missingFields.push("Product Name");
     if (!formData.price) missingFields.push("Price");
     if (!formData.category) missingFields.push("Category");
+    if (!formData.subCategory) missingFields.push("Subcategory");
+    // childSubCategory is optional but recommended
     if (formData.images.length === 0) missingFields.push("At least one Image");
 
     if (missingFields.length > 0) {
@@ -271,6 +311,43 @@ export default function ProductForm({ initialData }: ProductFormProps) {
               </div>
             </div>
           </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900">Policies & Information</h3>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Return Policy</label>
+              <textarea
+                rows={3}
+                placeholder="e.g., 7-day easy returns if the tag is intact..."
+                className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
+                value={formData.returnPolicy}
+                onChange={(e) => setFormData({ ...formData, returnPolicy: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Delivery Information</label>
+              <textarea
+                rows={3}
+                placeholder="e.g., Ships within 2-3 business days..."
+                className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
+                value={formData.deliveryInfo}
+                onChange={(e) => setFormData({ ...formData, deliveryInfo: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Care Instructions</label>
+              <textarea
+                rows={3}
+                placeholder="e.g., Hand wash cold, do not bleach..."
+                className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
+                value={formData.careInstructions}
+                onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Right Column - Sidebar Info */}
@@ -310,19 +387,74 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 required
                 className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                disabled={fetchingCategories}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value, subCategory: "" })}
+                disabled={fetchingData}
               >
                 <option value="">
-                  {fetchingCategories ? "Loading categories..." : "Select Category"}
+                  {fetchingData ? "Loading categories..." : "Select Category"}
                 </option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
-              {!fetchingCategories && categories.length === 0 && (
+              {!fetchingData && categories.length === 0 && (
                 <p className="text-xs text-red-500 mt-1">
                   No categories found. Please add them in the Categories page first.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Sub-Category *</label>
+              <select
+                required
+                className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition disabled:opacity-50 disabled:bg-gray-50"
+                value={formData.subCategory}
+                onChange={(e) => setFormData({ ...formData, subCategory: e.target.value, childSubCategory: "" })}
+                disabled={fetchingData || !formData.category}
+              >
+                <option value="">
+                  {!formData.category 
+                    ? "Select category first" 
+                    : fetchingData 
+                      ? "Loading subcategories..." 
+                      : "Select Sub-Category"
+                  }
+                </option>
+                {filteredSubCategories.map((sub) => (
+                  <option key={sub.id} value={sub.name}>{sub.name}</option>
+                ))}
+              </select>
+              {formData.category && !fetchingData && filteredSubCategories.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">
+                  No subcategories found for this category.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Child Sub-Category (Optional)</label>
+              <select
+                className="w-full rounded-lg bg-white border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition disabled:opacity-50 disabled:bg-gray-50"
+                value={formData.childSubCategory}
+                onChange={(e) => setFormData({ ...formData, childSubCategory: e.target.value })}
+                disabled={fetchingData || !formData.subCategory}
+              >
+                <option value="">
+                  {!formData.subCategory 
+                    ? "Select sub-category first" 
+                    : fetchingData 
+                      ? "Loading child subcategories..." 
+                      : "Select Child Sub-Category (Optional)"
+                  }
+                </option>
+                {filteredChildSubCategories.map((child) => (
+                  <option key={child.id} value={child.name}>{child.name}</option>
+                ))}
+              </select>
+              {formData.subCategory && !fetchingData && filteredChildSubCategories.length === 0 && (
+                <p className="text-xs text-gray-500 mt-1 italic">
+                  No child subcategories found.
                 </p>
               )}
             </div>

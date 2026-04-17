@@ -10,14 +10,20 @@ import {
   Settings, 
   Users, 
   LogOut,
-  Tag
+  Tag,
+  Tags,
+  Layers,
+  Package
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Package, label: "Orders", href: "/orders" },
   { icon: ShoppingBag, label: "Products", href: "/products" },
   { icon: PlusCircle, label: "Add Product", href: "/products/add" },
   { icon: Tag, label: "Categories", href: "/categories" },
+  { icon: Tags, label: "Sub-Categories", href: "/subcategories" },
+  { icon: Layers, label: "Child Sub-Categories", href: "/child-subcategories" },
   { icon: Users, label: "Customers", href: "/customers" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];

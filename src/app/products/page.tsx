@@ -63,7 +63,9 @@ export default function ProductsPage() {
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+    p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.subCategory && p.subCategory.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.childSubCategory && p.childSubCategory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -136,9 +138,21 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
-                        {product.category}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100 uppercase tracking-tight text-center">
+                          {product.category}
+                        </span>
+                        {product.subCategory && (
+                          <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-[10px] font-medium border border-gray-200 text-center">
+                            {product.subCategory}
+                          </span>
+                        )}
+                        {product.childSubCategory && (
+                          <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-medium border border-indigo-100 text-center">
+                            {product.childSubCategory}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {formatCurrency(product.price)}
